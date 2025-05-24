@@ -1,0 +1,47 @@
+<div id="login-form">
+  <form id="loginForm" hx-post="user/login">
+    <!-- Email input -->
+    <div data-mdb-input-init class="form-outline mb-4">
+      <input
+        type="email"
+        class="form-control"
+        id="userLoginEmailInput"
+        aria-describedby="emailHelp"
+        name="username"
+        placeholder="info@vibemusicacademy.com" />
+      <label class="form-label" for="userLoginEmailInput">Email address</label>
+    </div>
+
+    <!-- Password input -->
+    <div data-mdb-input-init class="form-outline mb-4">
+      <input
+        type="password"
+        class="form-control"
+        id="userLoginPasswordInput"
+        placeholder="••••••••••••"
+        name="password" />
+      <label class="form-label" for="userLoginPasswordInput">Password</label>
+    </div>
+
+    <!-- 2 column grid layout for inline styling -->
+    <div class="row mb-4">
+      <div class="col d-flex justify-content-center">
+        <!-- Checkbox -->
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="userLoginRememberMeCheckbox" checked />
+          <label class="form-check-label" for="userLoginRememberMeCheckbox"> Remember me </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit button -->
+    <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
+      Sign in
+    </button>
+  </form>
+
+  <p>
+    Don't have an account?
+    <button class="btn primary" hx-get="/signup-page" hx-target="#login-form" hx-swap="innerHTML">Sign Up</button>
+  </p>
+</div>

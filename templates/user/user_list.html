@@ -1,0 +1,31 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Email</th>
+      <th scope="col">First</th>
+      <th scope="col">Last</th>
+      <th scope="col">Registered</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <th>{{ user.username }}</th>
+      <td>{{ user.first_name }}</td>
+      <td>{{ user.last_name }}</td>
+      <td>{{ user.registered }}</td>
+      <td>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          hx-delete="/user{{ user.id }}"
+          hx-swap="innerHTML"
+          hx-target="#userManagementList">
+          Remove
+        </button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
