@@ -1,18 +1,13 @@
 <div id="add-user-form">
-  <h1>User Management</h1>
+  <h1>Admin User Management</h1>
   <hr />
   <section>
-    <h2>Add User</h2>
+    <h2>Add Admin User</h2>
     <form id="userAddForm" hx-post="/add-user">
       <div class="form-group">
         <label for="addUserEmail" class="form-label">Email:</label>
-        <input
-          type="email"
-          class="form-control"
-          id="addUserEmail"
-          aria-describedby="emailHelp"
-          name="username"
-          placeholder="admin@vibemusicacademy.com" />
+        <input type="email" class="form-control" id="addUserEmail" aria-describedby="emailHelp" name="username"
+          placeholder="admin@email.com" />
       </div>
       <div class="form-row">
         <div class="col">
@@ -29,7 +24,7 @@
   <section>
     <hr />
     <h2>Manage Users</h2>
-    <div hx-get="/users/list" hx-trigger="load" hx-swap="innerHTML" hx-target="#userManagementList">
+    <div hx-get="/user/list" hx-trigger="load" hx-swap="innerHTML" hx-target="#userManagementList">
       <div id="userManagementList"></div>
     </div>
   </section>

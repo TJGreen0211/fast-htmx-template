@@ -67,7 +67,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(OAuth2PasswordBearerCookie(token_url="/login"))):
+async def get_current_user(token: str = Depends(OAuth2PasswordBearerCookie(token_url="/user/login"))):
     # credentials_exception = HTTPException(
     #     status_code=401,
     #     detail="Could not validate credentials",

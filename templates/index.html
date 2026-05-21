@@ -1,99 +1,95 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Template</title>
-    <script src="/static/js/htmx.min.js"></script>
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <!-- a1a6b4 000100 -->
-    <style>
-      .btn {
-        background-color: #167D7F;
-        border-color: #29A0B1;
-        color: #f8f8f8;
-        transition: all 0.7s;
-      }
 
-      .btn:hover {
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tjgreen</title>
+  <script src="/static/js/htmx.min.js"></script>
+  <script src="/static/js/popper.min.js"></script>
+  <script src="/static/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="/static/css/bootstrap.css" />
+  <style>
+    .btn {
+      background-color: #3C506E;
+      color: #fff;
+      transition: all 0.7s;
+      border-color: #01a09f;
+    }
 
-        background-color: #29A0B1;
-        border-color: #167D7F;
-        color: #f8f8f8;
-      }
+    .btn:hover {
+      color: #fff;
+      background-color: #01a09f;
+      border-color: #3C506E;
+    }
 
-      .navbar-custom {
-        background-color: #167D7F;
-      }
+    a {
+      cursor: pointer;
+    }
 
-      a {
-        cursor: pointer;
-      }
+    .navbar-custom {
+      background-color: #3C506E;
+    }
 
-      #app {
-        font-family: Avenir, Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        color: #2c3e50;
-      }
+    #app {
+      font-family: Avenir, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #2c3e50;
+    }
 
-      .main {
-        padding-top: 2em;
-      }
-    </style>
-  </head>
+    .main {
+      padding-top: 2em;
+    }
+  </style>
+</head>
 
-  <body>
-    <header>
-      <nav class="navbar navbar-expand-md navbar-dark navbar-custom">
-        <div class="container">
-          <a class="navbar-brand" href="/">Template</a>
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse"
-            aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-              <li class="nav-item">
-                <a class="nav-link" hx-get="/user/whoami" hx-swap="innerHTML" hx-target="#mainContent" hx-push-url="/"
-                  >Home<span class="sr-only">(current)</span></a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" hx-get="/user/list" hx-swap="innerHTML" hx-target="#mainContent"
-                  >Users</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  hx-trigger="click"
-                  hx-post="/user/logout"
-                  hx-target="#mainContent"
-                  hx-swap="innerHTML"
-                  >Log Out
-                </a>
-              </li>
-            </ul>
-          </div>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-md navbar-dark navbar-custom">
+      <div class="container">
+        <a class="navbar-brand" href="/">tjgreen.io</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+          aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link" hx-get="/user/whoami" hx-swap="innerHTML" hx-target="#mainContent"
+                hx-push-url="/">Home<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Reporting</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Manage</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" hx-get="/user/list" hx-swap="innerHTML" hx-target="#mainContent"
+                hx-push-url="true">Users</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" hx-post="/user/logout"  hx-target="#mainContent" hx-swap="innerHTML">Log
+                Out
+              </a>
+            </li>
+          </ul>
         </div>
-      </nav>
-    </header>
-    <main
-      hx-get="/user/whoami"
-      hx-trigger="load"
-      hx-swap="innerHTML"
-      hx-target="#mainContent"
-      id="app"
-      class="main container">
+      </div>
+    </nav>
+  </header>
+  <main hx-get="/user/whoami" hx-trigger="load" hx-swap="innerHTML" hx-target="#mainContent">
+    <div id="app" class="main container">
       <div id="mainContent"></div>
-    </main>
-  </body>
+    </div>
+  </main>
+  <footer class="bg-white text-center py-3 shadow-sm mt-auto">
+    <div class="container">
+      <span class="text-muted">&copy; 2026 TJ Green. All rights reserved.</span>
+    </div>
+  </footer>
+</body>
+
 </html>

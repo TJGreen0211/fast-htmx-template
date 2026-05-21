@@ -77,7 +77,7 @@ class Users(DBModel):
 
 
 class UserInfo(User):
-    metadata: UserMeta
+    metadata: Optional[UserMeta]
 
 
 class UserInfos(DBModel):

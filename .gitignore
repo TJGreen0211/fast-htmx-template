@@ -11,3 +11,5 @@ gen
 .vscode
 venv/
 *.db
+*.pyc
+*.code-workspace

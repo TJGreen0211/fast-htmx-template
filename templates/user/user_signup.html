@@ -1,70 +1,42 @@
 <div id="signup-form">
+  <img src="/static/assets/dihp_logo.svg" alt="DIHP Logo" height="100px" width="100px" />
+
   <h2>Sign Up</h2>
-  <form id="signupForm" hx-post="user/signup">
+  <form id="signupForm" hx-post="/user/signup">
     <div class="form-group">
       <label for="signupInputFirstName">First Name *</label>
-      <input
-        type="text"
-        class="form-control"
-        id="signupInputFirstName"
-        name="firstName"
-      />
+      <input type="text" class="form-control" id="signupInputFirstName" name="firstName" />
     </div>
     <div class="form-group">
       <label for="signupInputLastName">Last Name *</label>
-      <input
-        type="text"
-        class="form-control"
-        id="signupInputLastName"
-        name="lastName"
-      />
+      <input type="text" class="form-control" id="signupInputLastName" name="lastName" />
     </div>
     <div class="form-group">
       <label for="exampleInputEmail1">Email address</label>
-      <input
-        type="email"
-        class="form-control"
-        id="exampleInputEmail1"
-        aria-describedby="emailHelp"
-        name="userEmail"
-        placeholder="info@mailaddress.com"
-      />
-      <small id="emailHelp" class="form-text text-muted"
-        >We'll never share your email with anyone else.</small
-      >
+      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="userEmail"
+        placeholder="info@mailaddress.com" />
+      <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
     </div>
 
     <div class="form-group">
       <label for="userPhone">Phone Number</label>
-      <input
-        type="tel"
-        class="form-control"
-        id="userPhone"
-        name="userPhone"
-      />
+      <input type="tel" class="form-control" id="userPhone" name="userPhone" required />
     </div>
-<!-- pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" -->
     <div class="form-group">
       <label for="exampleInputPassword1">Password</label>
-      <input
-        type="password"
-        class="form-control"
-        id="exampleInputPassword1"
-        placeholder="••••••••••••"
-        name="password"
-      />
+      <input type="password" class="form-control" id="exampleInputPassword1" placeholder="••••••••••••"
+        name="password" />
+    </div>
+    <div class="form-group">
+      <label for="inputPhoto">Photo</label>
+      <input type="file" accept="image/*" capture="user" class="form-control" id="inputPhoto" name="user-photo" />
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 
   <p>
-    Already have and account?
-    <button
-      class="btn primary"
-      hx-get="/login-page"
-      hx-target="#signup-form"
-      hx-swap="innerHTML"
-    >
+    Already have an account?
+    <button class="btn primary" hx-get="/login-page" hx-target="#signup-form" hx-swap="innerHTML">
       Log In
     </button>
   </p>

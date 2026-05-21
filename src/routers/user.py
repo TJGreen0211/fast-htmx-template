@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import Annotated, Union
 
 from fastapi import APIRouter, Header, Depends, HTTPException, status, Request
+from fastapi.responses import RedirectResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -89,18 +90,7 @@ async def login(request: Request, user: OAuth2PasswordRequestForm = Depends()):
 
 @router.post('/user/logout', dependencies=[Depends(get_current_user)])
 async def logout(request: Request, current_user: LoginUser = Depends(get_current_user)):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not logged in",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    response = templates.TemplateResponse(
-        name="user/user_login.html",
-        request=request,
-        context={}
-    )
+    response = RedirectResponse(url="/login-page", status_code=302)
 
     response.delete_cookie(
         "Authorization",
@@ -118,7 +108,7 @@ async def read_users_me(request: Request, current_user: LoginUser = Depends(get_
         return templates.TemplateResponse(
             name="main.html",
             request=request,
-            context={}
+            context={"user": current_user.username}
         )
 
     return templates.TemplateResponse(

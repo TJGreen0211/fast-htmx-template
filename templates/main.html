@@ -1,5 +1,38 @@
-<section>
-  <div id="appCcontent">
-    <h6>Welcome {{ user.first_name }}</h6>
+<section class="container py-4">
+  <h6 class="mb-4">Welcome {{ user }}</h6>
+  <div class="row row-cols-1 row-cols-md-3 g-3">
+    <div class="col">
+      <a hx-get="/user/list" hx-push-url="true" hx-target="#mainContent" hx-swap="innerHTML"
+        class="text-body text-decoration-none link-underline-none">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Reporting</h5>
+            <p class="card-text">View and manage reports.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col">
+      <a hx-get="/user/list" hx-push-url="true" hx-target="#mainContent" hx-swap="innerHTML"
+        class="text-body text-decoration-none link-underline-none">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Manage</h5>
+            <p class="card-text">Manage settings and configuration.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col">
+      <a hx-get="/user/list" hx-push-url="true" hx-target="#mainContent" hx-swap="innerHTML"
+        class="text-body text-decoration-none link-underline-none">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Users</h5>
+            <p class="card-text">View and manage user accounts.</p>
+          </div>
+        </div>
+      </a>
+    </div>
   </div>
 </section>
