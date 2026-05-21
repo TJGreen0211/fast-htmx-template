@@ -4,7 +4,7 @@ import string
 import random
 from typing_extensions import Self
 
-from .statements import DBDrivers
+from .statements import DBDrivers, SQLFunction
 
 
 class PreparedStatement(object):
@@ -14,7 +14,7 @@ class PreparedStatement(object):
         self.bind = bind.format(name)
         self.name = name
         self._format = bind
-        self.query_args = {name: value}
+        self.query_args = {name: self.value}
 
 
 class QueryFilter(object):
@@ -29,6 +29,7 @@ class QueryFilter(object):
     LIKE = 'LIKE'
     AS = 'as'
     IN = 'IN'
+    NOT_IN = 'NOT IN'
 
     def __init__(self, column: str, value: str,
                  col_format: str='{}', operator: str='=', is_join: bool=False,
@@ -64,7 +65,7 @@ class QueryFilter(object):
         if isinstance(ret_val, int):
             return ret_val
         if isinstance(ret_val, list):
-            return tuple(ret_val)
+            return tuple(ret_val) if ret_val else ("NULL",)
             # ret_val = ','.join([str(x) if isinstance(x, int) else f'{x}' for x in ret_val])
             # return f"({ret_val if ret_val else 'NULL'})"
         if isinstance(ret_val, str):
@@ -73,6 +74,8 @@ class QueryFilter(object):
             ret_val = json.dumps(ret_val, default=str)
         if isinstance(ret_val, datetime.date):
             ret_val = ret_val.strftime('%Y-%m-%dT%H:%M:%S')
+        if isinstance(ret_val, bytes):
+            return ret_val
 
         return f'{ret_val}'
         # return f'\'{ret_val}\''
@@ -86,7 +89,9 @@ class QueryFilter(object):
             return self.IS_NULL if ret_val == self.EQUALS else \
                 self.IS_NOT_NULL if ret_val == self.NOT_EQUALS else ret_val
         if isinstance(self.value, list):
-            return self.IN
+            if ret_val not in [self.EQUALS, self.NOT_EQUALS]:
+                raise ValueError(f"Operand not supported {ret_val}")
+            return self.IN if ret_val == self.EQUALS else self.NOT_IN
         return ret_val
 
     @property
@@ -109,7 +114,7 @@ class DBTermMeta(type):
 
 class Term(object):
     def __init__(
-        self, name, type=None, model=None, schema: str='', table: str='', driver=DBDrivers.SQLITE, position=0
+        self, name, type=None, model=None, schema: str='', table: str='', driver=DBDrivers.MYSQL, position=0
     ) -> None:
         self.schema = model.schema_ if model else schema
         self.table = model.table_ if model else table
@@ -123,16 +128,12 @@ class Term(object):
         self.qualified_table_name = '.'.join([x for x in [self.schema, self.table] if x])
 
         self.name = name
-        self.model = model
-        # if model:
-        #     self.model = model.__base__ if model._is_multiple() else model
-        # else:
-        #     self.model = None
-        # print(f"MODEL IS: {self.model}")
-
+        self.model = model._query_graph.V[0] if model else None
         self.left = None
         self.right = None
         self.operator = None
+        self.modifier = None
+        self.alias = None
 
         self.compound = False
         self.order_dir = None
@@ -167,11 +168,14 @@ class Term(object):
 
             ret = PreparedStatement(statement, self.left.value, self.left.name, self._bind_format)
             ret.query_args.update(r_stmnt.query_args)
+            ret.query_args.update(self.left.query_args)
             return ret
 
         else:
             dot = '.' if self.left else ''
             left = self.left if self.compound else f"{self.qualified_table_name}{dot}{self.left}"
+            if self.modifier:
+                left = f"{self.modifier}({left})"
             qf = QueryFilter(left, self.right, operator=self.operator, is_join=self.compound)
             ret = '{}'
             chars = string.ascii_lowercase + string.digits
@@ -290,17 +294,53 @@ class Term(object):
         self.compound = True
         return self._parse(lt, rt, 'AND')
 
-        return self._parse(f"{self.qualified_table_name}.{self.name}", f"'{a}' AND '{b}'", 'BETWEEN')
+    # def lconcat(self, t: str):
+    #     self.modifier = SQLFunction.CONCAT
+    #     self.
+    #     rt = t
+    #     lt = lt.prepare
+    #     # self.compound = True
+    #     return self
 
     # LIKE TRUE if the operand matches a pattern
     def like(self, a):
         return self._parse(self.name, a, 'LIKE')
+
+    def length(self):
+        self.modifier = SQLFunction.LENGTH
+        return self
+
+    def lcase(self):
+        self.modifier = SQLFunction.LOWER
+        return self
+
+    def ucase(self):
+        self.modifier = SQLFunction.UPPER
+        return self
+
+    def trim(self):
+        self.modifier = SQLFunction.TRIM
+        return self
+
+    def date(self):
+        self.modifier = SQLFunction.DATE
+        return self
 
     ############################################
     # Modifiers
     ############################################
     def desc(self):
         self.order_dir = 'DESC'
+        return self
+
+    def random(self, seed: int=None):
+        'SELECT * FROM content_meta ORDER BY (substr(id * 12345647, length(id) + 2))'
+        pk_order_by = self.model._primary_keys()[0]
+        if seed:
+            self.order_dir = (f"SUBSTR({self.qualified_table_name}.{pk_order_by} * {seed}, "
+                              f"LENGTH({self.qualified_table_name}.{pk_order_by}) + 2)")
+        else:
+            self.order_dir = 'RANDOM'
         return self
 
     def asc(self):

@@ -1,4 +1,4 @@
-class JoinTypes(object):
+class JoinType(object):
     LEFT = 'LEFT'
     INNER = 'INNER'
     LEFT_OUTER = 'LEFT OUTER'
@@ -10,12 +10,20 @@ class JoinTypes(object):
     HASH = 'HASH'
 
 
+class SQLFunction(object):
+    CONCAT = 'CONCAT'
+    LENGTH = 'LENGTH'
+    LOWER = 'LOWER'
+    UPPER = 'UPPER'
+    TRIM = 'TRIM'
+
+
 class KeywordFunctions(object):
-    MIN = 'MIN(',
-    MAX = 'MAX(',
-    COUNT = 'COUNT(',
-    DATE = 'DATE(',
-    COUNT = 'COUNT(',
+    MIN = 'MIN('
+    MAX = 'MAX('
+    COUNT = 'COUNT('
+    DATE = 'DATE('
+    COUNT = 'COUNT('
     DISTINCT = 'DISTINCT('
 
 

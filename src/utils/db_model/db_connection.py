@@ -6,11 +6,11 @@ from copy import copy
 from sqlalchemy import create_engine
 from sqlalchemy.pool import QueuePool
 # from pymysql import IntegrityError, InternalError, ProgrammingError
-from .mgmt.terms import QueryFilter, Term
-from .mgmt.statements import DBDrivers, JoinTypes, QueryStatement
+from .utils.terms import QueryFilter, Term
+from .utils.statements import DBDrivers, JoinType, QueryStatement
 from src.utils.config import logging_level, db_conn_str
 
-logging.basicConfig(format="%(levelname)s: %(name)s:%(message)s")
+logging.basicConfig(format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging_level)
 
@@ -24,6 +24,10 @@ DB_CONNECTION_POOL = create_engine(
     pool_recycle=3600,
     poolclass=QueuePool,
 )
+
+
+class DBModelConfig:
+    driver = DBDrivers.SQLITE
 
 
 class DirectDBConnection(object):
@@ -90,8 +94,7 @@ class DirectDBConnection(object):
         data = None
         last_row_id = 0
         logger.debug(sql_string)
-        # print(sql_string)
-        # print(query_args)
+        logger.debug(query_args)
 
         try:
             self._cursor = self._conn.cursor()
@@ -128,10 +131,9 @@ class DirectDBConnection(object):
         Open Connection to specified DSN.
         """
 
-        global DB_CONNECTION_POOL
         try:
             self._conn = DB_CONNECTION_POOL.raw_connection()
-            logger.debug(DB_CONNECTION_POOL.pool.status())
+            # logger.debug(DB_CONNECTION_POOL.pool.status())
             self.conn_driver = DB_CONNECTION_POOL.driver
         except Exception:
             logger.error(f"Cannot connect to DB using conn str={DB_CONNECTION_POOL.url}.")
@@ -196,7 +198,8 @@ class DBQuery(DirectDBConnection):
         self.transactions: list[str] = []
 
         # TODO: This was a quick fix and needs to be reworked
-        self.keywords = ['MIN(', 'MAX(', 'COUNT(', 'DATE(', 'COUNT(', 'DISTINCT(', 'DATE_FORMAT(', 'CONCAT(']
+        self.keywords = ['MIN(', 'MAX(', 'COUNT(', 'DATE(', 'COUNT(', 'DISTINCT(', 'DATE_FORMAT(', 'CONCAT(',
+                         'JSON_UNQUOTE(', 'JSON_EXTRACT(']
 
         self.joins: list['DBQuery'] = []
         self.on: list[QueryFilter] = []
@@ -266,31 +269,31 @@ class DBQuery(DirectDBConnection):
         self.joins = [table] + [x for x in self.joins]
 
     def inner_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.INNER)
+        return self.join(table, join_from, join_to, join_type=JoinType.INNER)
 
     def left_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.LEFT)
+        return self.join(table, join_from, join_to, join_type=JoinType.LEFT)
 
     def left_outer_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.LEFT_OUTER)
+        return self.join(table, join_from, join_to, join_type=JoinType.LEFT_OUTER)
 
     def right_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.RIGHT)
+        return self.join(table, join_from, join_to, join_type=JoinType.RIGHT)
 
     def outer_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.OUTER)
+        return self.join(table, join_from, join_to, join_type=JoinType.OUTER)
 
     def right_outer_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.RIGHT_OUTER)
+        return self.join(table, join_from, join_to, join_type=JoinType.RIGHT_OUTER)
 
     def full_outer_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.FULL_OUTER)
+        return self.join(table, join_from, join_to, join_type=JoinType.FULL_OUTER)
 
     def cross_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.CROSS)
+        return self.join(table, join_from, join_to, join_type=JoinType.CROSS)
 
     def hash_join(self, table: 'DBQuery', join_from: str, join_to: str) -> 'DBQuery':
-        return self.join(table, join_from, join_to, join_type=JoinTypes.HASH)
+        return self.join(table, join_from, join_to, join_type=JoinType.HASH)
 
     @_builder
     def select(self, *args) -> 'DBQuery':
@@ -346,6 +349,7 @@ class DBQuery(DirectDBConnection):
             arr.extend(args)
         if not arr:
             raise TypeError("No arguments supplied")
+
         self.wheres = arr
 
     @_builder
@@ -392,16 +396,22 @@ class DBQuery(DirectDBConnection):
         return '.'.join([x for x in [self.schema, self.table] if x])
 
     def _qualify_keywords(self, column: str) -> str:
-        keyword_index = [y in "DATE_FORMAT(fetch_date, '%Y-%m') as label" for y in self.keywords].index(True)
-        return column.replace(
-            self.keywords[keyword_index], f"{self.keywords[keyword_index]}{self.qualified_table_name}.")
+        # keyword_index = [y in column for y in self.keywords]
+        keyword_index = [y in "DATE_FORMAT(fetch_date, '%Y-%m') as label" for y in self.keywords]
+
+        if True in keyword_index:
+            keyword_index = self.keywords[keyword_index.index(True)]
+
+            return column.replace(keyword_index, f"{keyword_index}{self.qualified_table_name}.")
+        return column
 
     @property
     def _prepare_columns(self) -> str:
         columns = ''
+
         columns = ', '.join(
             [self._qualify_keywords(x) if any([y in x for y in self.keywords])
-             else f"{self.qualified_table_name}.{x}" for x in self.columns]
+             else f"{self.qualified_table_name}.`{x}`".replace('`*`', '*') for x in self.columns]
         )
         if self.count_as:
             columns = self.count_as.as_sql
@@ -432,15 +442,26 @@ class DBQuery(DirectDBConnection):
                 stmnt_wheres.append(where.statement.replace(where.bind, s))
             else:
                 stmnt_query_args.update(where.query_args)
-                stmnt_wheres.append(where.statement)
+                stmnt_wheres.append(self._qualify_keywords(where.statement))
 
         self.query_args.update(stmnt_query_args)
-
         wheres = ' AND '.join(stmnt_wheres)
-        join_wheres = ' AND '.join([x for x in [x._prepare_wheres for x in self.joins] if x])
+
+        join_wheres = []
+        join_query_args = {}
+        for x in self.joins:
+            stmnt, query_args = x._prepare_wheres
+            join_wheres.append(stmnt)
+            join_query_args.update(query_args)
+
+        join_wheres = ' AND '.join([x for x in join_wheres if x])
+
+        self.query_args.update(stmnt_query_args)
+        self.query_args.update(join_query_args)
+
         wheres = ' AND '.join([x for x in [wheres, join_wheres] if x]).strip()
         if self.parent_table:
-            return f"{wheres}" if wheres else ""
+            return f"{wheres}" if wheres else "", self.query_args
         return f" WHERE {wheres} " if wheres else ""
 
     @property
@@ -474,7 +495,7 @@ class DBQuery(DirectDBConnection):
         if self.parent_table:
             return f"{updates}" if updates else ""
 
-        return f" SET {updates} " if updates else ""
+        return f" SET {updates.replace('IS', '=')} " if updates else ""
 
     @property
     def _prepare_inserts(self) -> str:
@@ -498,6 +519,12 @@ class DBQuery(DirectDBConnection):
 
     @property
     def _prepare_order_bys(self) -> str:
+        for x in self.order_bys:
+            if (isinstance(x, Term) and x.order_dir) and (x.order_dir == 'RANDOM' or 'SUBSTR' in x.order_dir):
+                if x.order_dir == 'RANDOM':
+                    return ' ORDER BY RANDOM() '
+                else:
+                    return f' ORDER BY {x.order_dir} '
         return ' ORDER BY ' + ', '.join([
             f"{self.qualified_table_name}.{x} {self.order_by_dir}" if isinstance(x, str) else
             f"{x.qualified_table_name}.{x.name} {x.order_dir if x.order_dir else 'DESC'}"
@@ -568,7 +595,7 @@ class DBQuery(DirectDBConnection):
         if self.transaction_type == TransactionTypes.INSERT:
             # WITH an_alias AS (SELECT * FROM "customers") SELECT * FROM an_alias
             column_mapping = self.inserts[0] if self.multiple else self.inserts
-            insert_columns = ', '.join([x.column for x in column_mapping])
+            insert_columns = ', '.join([f'`{x.column}`' for x in column_mapping])
 
             return query_format.insert.format(
                 table=self.qualified_table_name, columns=insert_columns, values=self._prepare_inserts)
@@ -622,7 +649,7 @@ class DBQuery(DirectDBConnection):
                     # else we grab the PK from the insert data
                     self.wheres = [QueryFilter(
                         pk.get('Field'),
-                        next((insert.value for insert in self.inserts if insert.column == pk.get('Field')), None)
+                        next((insert.right for insert in self.inserts if insert.column == pk.get('Field')), None)
                     ) for pk in pks]
 
             try:
