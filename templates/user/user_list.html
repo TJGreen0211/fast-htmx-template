@@ -4,6 +4,7 @@
       <th scope="col">Email</th>
       <th scope="col">First</th>
       <th scope="col">Last</th>
+      <th scope="col">Permissions</th>
       <th scope="col">Registered</th>
       <th scope="col"></th>
     </tr>
@@ -14,13 +15,14 @@
       <th>{{ user.username }}</th>
       <td>{{ user.first_name }}</td>
       <td>{{ user.last_name }}</td>
+      <td><select class="form-control" name="calendarMonth">
+          <option>Admin</option>
+          <option>User</option>
+          <option>Etc</option>
+        </select></td>
       <td>{{ user.registered }}</td>
       <td>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          hx-delete="/user/{{ user.id }}"
-          hx-swap="innerHTML"
+        <button type="submit" class="btn btn-primary" hx-delete="/user{{ user.id }}" hx-swap="innerHTML"
           hx-target="#userManagementList">
           Remove
         </button>

@@ -67,27 +67,46 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(OAuth2PasswordBearerCookie(token_url="/user/login"))):
-    # credentials_exception = HTTPException(
-    #     status_code=401,
-    #     detail="Could not validate credentials",
-    #     headers={"WWW-Authenticate": "Bearer"},
-    # )
+async def get_current_user(token: str = Depends(OAuth2PasswordBearerCookie(token_url="/login"))):
+    credentials_exception = HTTPException(
+        status_code=302,
+        detail="Not authorized",
+        headers={"Location": "/login-page"}
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    except Exception:
+        raise credentials_exception
+
+    user = User.load(User.username == username)
+    if not user:
+        raise credentials_exception
+    return LoginUser(id=user.id, username=user.username)
+
+
+async def get_optional_current_user(
+    token: Optional[str] = Depends(OAuth2PasswordBearerCookie(token_url="/login"))
+):
+    if token is None:
+        return None
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             return None
-            # raise credentials_exception
     except JWTError:
         return None
     except Exception:
         return None
-        # raise credentials_exception
 
     user = User.load(User.username == username)
     if not user:
         return None
-        # raise credentials_exception
     return LoginUser(id=user.id, username=user.username)

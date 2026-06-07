@@ -114,7 +114,7 @@ class DBTermMeta(type):
 
 class Term(object):
     def __init__(
-        self, name, type=None, model=None, schema: str='', table: str='', driver=DBDrivers.MYSQL, position=0
+        self, name, type=None, model=None, schema: str='', table: str='', driver=DBDrivers.SQLITE, position=0
     ) -> None:
         self.schema = model.schema_ if model else schema
         self.table = model.table_ if model else table
