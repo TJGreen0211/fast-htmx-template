@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.routers import user
+from src.routers import dashboard
 
 
 app = FastAPI()
@@ -37,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(user.router)
+app.include_router(dashboard.router)
 
 
 #: Describe all Pydantic Response classes
