@@ -1,11 +1,11 @@
-"""Login routes."""
+"""Dashboard routes."""
 from typing import Annotated, Union
 
-from fastapi import APIRouter, Header, Depends, Request
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Header, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from src.models.user import UserInfos
+from src.models.user import UserInfos, UserInfo, User
 from src.auth.jwt_handler import get_current_user
 
 
@@ -58,3 +58,54 @@ async def get_user_list(request: Request, hx_request: Annotated[Union[str, None]
         )
 
     return RedirectResponse(url="/dashboard/users", status_code=302)
+
+
+@router.post("/add-user", response_class=HTMLResponse, dependencies=[Depends(get_current_user)])
+async def add_user(request: Request):
+    data = await request.form()
+    username = data.get("username")
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+    password = data.get("password", "")
+
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    UserInfo.create(**{
+        "username": username,
+        "password": password,
+        "metadata": {
+            "first_name": first_name,
+            "last_name": last_name,
+            "phone": "",
+        },
+        "notification": {
+            "text": True,
+            "email": True,
+        }
+    })
+
+    return templates.TemplateResponse(
+        name="dashboard/users/add_user_success.html",
+        request=request,
+        context={"username": username},
+        headers={"HX-Trigger": "reloadUserList"}
+    )
+
+
+@router.delete("/user/{user_id}", dependencies=[Depends(get_current_user)])
+async def remove_user(user_id: int, request: Request, hx_request: Annotated[Union[str, None], Header()] = None):
+    user = User.load(User.id == user_id, limit=1)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.delete(cascade=True)
+
+    if hx_request:
+        return templates.TemplateResponse(
+            name="dashboard/users/user_removed.html",
+            request=request,
+            context={"username": user.username},
+            headers={"HX-Trigger": "reloadUserList"}
+        )
+
+    return JSONResponse({"status": True})

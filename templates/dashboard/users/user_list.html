@@ -22,8 +22,8 @@
         </select></td>
       <td>{{ user.registered }}</td>
       <td>
-        <button type="submit" class="btn btn-primary" hx-delete="/user{{ user.id }}" hx-swap="innerHTML"
-          hx-target="#userManagementList">
+        <button type="button" class="btn btn-danger" hx-delete="/user/{{ user.id }}" hx-swap="outerHTML"
+          hx-confirm="Remove user {{ user.username }}?" hx-target="closest tr">
           Remove
         </button>
       </td>
