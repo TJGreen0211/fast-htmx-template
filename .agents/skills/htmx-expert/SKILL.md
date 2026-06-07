@@ -208,6 +208,63 @@ else:
     return render_template('full_page.html')
 ```
 
+### FastAPI hx_request Pattern
+
+When building HTMX endpoints with FastAPI, always check the `HX-Request` header to return the correct response type. HTMX requests return HTML fragments; direct browser requests (page load, refresh after `hx-push-url`) return full-page wrappers.
+
+**Required imports:**
+```python
+from typing import Annotated, Union
+from fastapi import Header, Request
+```
+
+**Endpoint signature:**
+```python
+@router.get("/some-path", response_class=HTMLResponse)
+async def some_endpoint(
+    request: Request,
+    hx_request: Annotated[Union[str, None], Header()] = None,
+):
+    if hx_request:
+        # HTMX request — return HTML fragment only
+        return templates.TemplateResponse(
+            name="fragment.html",
+            request=request,
+            context={"data": data}
+        )
+
+    # Direct browser request — return full-page wrapper
+    return templates.TemplateResponse(
+        name="wrapper.html",
+        request=request,
+        context={"fragment_template": "fragment.html", "data": data}
+    )
+```
+
+**wrapper.html template** (reusable, extends the base layout):
+```jinja
+{% extends "index.html" %}
+
+{% block main_content %}
+  {% include fragment_template %}
+{% endblock %}
+```
+
+**Key rules:**
+1. **Always** use `response_class=HTMLResponse` on GET endpoints that return HTML
+2. **Always** check `hx_request` header — never return JSON for GET navigational endpoints
+3. **POST endpoints** (form submissions) may return JSON for non-HTMX requests since they are not navigational
+4. **HX-Trigger header** on responses triggers client-side events to reload related content:
+   ```python
+   return templates.TemplateResponse(
+       name="success.html",
+       request=request,
+       context={"username": username},
+       headers={"HX-Trigger": "reloadUserList"}
+   )
+   ```
+5. For `DELETE` and other mutating endpoints, the HTMX branch returns a fragment + `HX-Trigger` to refresh related UI; the non-HTMX branch returns `JSONResponse`
+
 ## Events
 
 ### Key Events
