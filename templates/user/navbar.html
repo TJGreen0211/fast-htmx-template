@@ -1,6 +1,6 @@
 {% if logged_in %}
   <li class="nav-item">
-    <a class="nav-link" hx-push-url="/">Home<span class="sr-only">(current)</span></a>
+    <a class="nav-link" hx-get="/user/whoami" hx-push-url="/" hx-target="#mainContent" hx-swap="innerHTML">Home<span class="sr-only">(current)</span></a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="#">Reporting</a>

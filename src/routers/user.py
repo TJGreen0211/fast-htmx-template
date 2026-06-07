@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Annotated, Union
 
 from fastapi import APIRouter, Header, Depends, HTTPException, status, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -54,7 +54,11 @@ async def login_page(request: Request, hx_request: Annotated[Union[str, None], H
             context={}
         )
 
-    return JSONResponse({"message": "Login page", "redirect": "/login-page"})
+    return templates.TemplateResponse(
+        name="wrapper.html",
+        request=request,
+        context={"fragment_template": "user/user_login.html"}
+    )
 
 
 @router.get("/signup-page", response_class=HTMLResponse)
@@ -67,7 +71,11 @@ async def signup_page(request: Request, hx_request: Annotated[Union[str, None], 
             context={}
         )
 
-    return JSONResponse({"message": "Signup page", "redirect": "/signup-page"})
+    return templates.TemplateResponse(
+        name="wrapper.html",
+        request=request,
+        context={"fragment_template": "user/user_signup.html"}
+    )
 
 
 @router.post('/user/login')
@@ -169,8 +177,16 @@ async def read_users_me(
         )
 
     if current_user:
-        return JSONResponse({"user": current_user.username, "id": current_user.id})
-    return JSONResponse({"message": "Not authenticated", "redirect": "/login-page"})
+        return templates.TemplateResponse(
+            name="wrapper.html",
+            request=request,
+            context={"fragment_template": "main.html", "user": current_user.username}
+        )
+    return templates.TemplateResponse(
+        name="wrapper.html",
+        request=request,
+        context={"fragment_template": "user/user_login.html"}
+    )
 
 
 @router.post("/user/signup", response_class=HTMLResponse)
@@ -233,12 +249,16 @@ async def get_users(request: Request, hx_request: Annotated[Union[str, None], He
 
     if hx_request:
         return templates.TemplateResponse(
-            name="user/users.html",
+            name="dashboard/user/users.html",
             request=request,
             context={"users": user_data}
         )
 
-    return JSONResponse({"users": user_data})
+    return templates.TemplateResponse(
+        name="wrapper.html",
+        request=request,
+        context={"fragment_template": "dashboard/user/users.html", "users": user_data}
+    )
 
 
 @router.get("/user/list", dependencies=[Depends(get_current_user)])
@@ -254,9 +274,9 @@ async def get_user_list(request: Request, hx_request: Annotated[Union[str, None]
 
     if hx_request:
         return templates.TemplateResponse(
-            name="user/user_list.html",
+            name="dashboard/user/user_list.html",
             request=request,
             context={"users": user_data}
         )
 
-    return JSONResponse({"users": user_data})
+    return RedirectResponse(url="/user/users", status_code=302)

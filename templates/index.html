@@ -55,14 +55,18 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
-         <ul id="navbarLinks" class="navbar-nav me-auto mb-2 mb-md-0" hx-get="/user/navbar" hx-trigger="load, refreshNavbar from:body" hx-swap="innerHTML"></ul>
+         <ul id="navbarLinks" class="navbar-nav me-auto mb-2 mb-md-0" hx-get="/user/navbar" hx-trigger="load, refreshNavbar from:body" hx-swap="innerHTML">
+            {% block navbar_items %}{% endblock %}
+          </ul>
         </div>
       </div>
     </nav>
   </header>
-  <main hx-get="/user/whoami" hx-trigger="load" hx-swap="innerHTML" hx-target="#mainContent">
+  <main>
     <div id="app" class="main container">
-      <div id="mainContent"></div>
+      <div id="mainContent">
+        {% block main_content %}{% endblock %}
+      </div>
     </div>
   </main>
   <footer class="bg-white text-center py-3 shadow-sm mt-auto">
@@ -70,6 +74,14 @@
       <span class="text-muted">&copy; 2026 TJ Green. All rights reserved.</span>
     </div>
   </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var mc = document.getElementById('mainContent');
+      if (!mc || !mc.innerHTML.trim()) {
+        htmx.ajax('GET', '/user/whoami', {target: '#mainContent', swap: 'innerHTML'});
+      }
+    });
+  </script>
 </body>
 
 </html>

@@ -1,7 +1,7 @@
 <div class="container d-flex align-items-center justify-content-center min-vh-100">
   <div class="card shadow-sm p-4 w-100" style="max-width: 500px;">
     <h3 class="mb-4 text-center">Sign In</h3>
-    <form id="loginForm" hx-post="/user/login">
+    <form id="loginForm" hx-post="/user/login" hx-push-url="/" hx-target="#mainContent" hx-swap="innerHTML">
       <div class="mb-3">
         <label for="userLoginEmailInput" class="form-label">Email address</label>
         <input type="email" class="form-control" id="userLoginEmailInput" name="username" placeholder="info@email.com"
