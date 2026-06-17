@@ -7,10 +7,10 @@ from src.controllers.signup import SignupForm, SignupController
 
 
 VALID_FORM_DATA = {
-    "first_name": "John",
-    "last_name": "Doe",
-    "user_email": "john@example.com",
-    "user_phone": "1234567890",
+    "firstName": "John",
+    "lastName": "Doe",
+    "userEmail": "john@example.com",
+    "userPhone": "1234567890",
     "password": "SecurePass123!",
 }
 
@@ -29,48 +29,48 @@ class TestSignupForm(unittest.TestCase):
     def test_invalid_email_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             SignupForm.model_validate({
-                "first_name": "John",
-                "last_name": "Doe",
-                "user_email": "not-an-email",
-                "user_phone": "1234567890",
+                "firstName": "John",
+                "lastName": "Doe",
+                "userEmail": "not-an-email",
+                "userPhone": "1234567890",
                 "password": "SecurePass123!",
             })
 
     def test_missing_at_in_email_raises(self):
         with self.assertRaises(ValidationError):
             SignupForm.model_validate({
-                "first_name": "John",
-                "last_name": "Doe",
-                "user_email": "johnexample.com",
-                "user_phone": "1234567890",
+                "firstName": "John",
+                "lastName": "Doe",
+                "userEmail": "johnexample.com",
+                "userPhone": "1234567890",
                 "password": "SecurePass123!",
             })
 
     def test_missing_domain_in_email_raises(self):
         with self.assertRaises(ValidationError):
             SignupForm.model_validate({
-                "first_name": "John",
-                "last_name": "Doe",
-                "user_email": "john@",
-                "user_phone": "1234567890",
+                "firstName": "John",
+                "lastName": "Doe",
+                "userEmail": "john@",
+                "userPhone": "1234567890",
                 "password": "SecurePass123!",
             })
 
     def test_missing_required_field_raises(self):
         with self.assertRaises(ValidationError):
             SignupForm.model_validate({
-                "first_name": "John",
-                "user_email": "john@example.com",
-                "user_phone": "1234567890",
+                "firstName": "John",
+                "userEmail": "john@example.com",
+                "userPhone": "1234567890",
                 "password": "SecurePass123!",
             })
 
     def test_empty_first_name_does_not_raise(self):
         form = SignupForm.model_validate({
-            "first_name": "",
-            "last_name": "Doe",
-            "user_email": "john@example.com",
-            "user_phone": "1234567890",
+            "firstName": "",
+            "lastName": "Doe",
+            "userEmail": "john@example.com",
+            "userPhone": "1234567890",
             "password": "SecurePass123!",
         })
         self.assertEqual(form.first_name, "")
@@ -83,40 +83,7 @@ class TestSignupForm(unittest.TestCase):
         self.assertIn("userEmail", dumped)
         self.assertIn("userPhone", dumped)
 
-    def test_form_accepts_camelcase_dict_input(self):
-        form = SignupForm.model_validate({
-            "firstName": "Jane",
-            "lastName": "Smith",
-            "userEmail": "jane@example.com",
-            "userPhone": "0987654321",
-            "password": "StrongPass456!",
-        })
-        self.assertEqual(form.first_name, "Jane")
-        self.assertEqual(form.last_name, "Smith")
-        self.assertEqual(form.user_email, "jane@example.com")
-
-    def test_special_characters_in_name(self):
-        form = SignupForm.model_validate({
-            "first_name": "María",
-            "last_name": "O'Brien",
-            "user_email": "maria@example.com",
-            "user_phone": "1234567890",
-            "password": "Pass123!",
-        })
-        self.assertEqual(form.first_name, "María")
-        self.assertEqual(form.last_name, "O'Brien")
-
-    def test_phone_with_formatting(self):
-        form = SignupForm.model_validate({
-            "first_name": "John",
-            "last_name": "Doe",
-            "user_email": "john@example.com",
-            "user_phone": "+1 (555) 123-4567",
-            "password": "Pass123!",
-        })
-        self.assertEqual(form.user_phone, "+1 (555) 123-4567")
-
-    def test_snake_case_dump(self):
+    def test_model_dump_uses_snake_case(self):
         form = SignupForm.model_validate(VALID_FORM_DATA)
         dumped = form.model_dump()
         self.assertIn("first_name", dumped)
@@ -124,25 +91,57 @@ class TestSignupForm(unittest.TestCase):
         self.assertIn("user_email", dumped)
         self.assertIn("user_phone", dumped)
 
+    def test_special_characters_in_name(self):
+        form = SignupForm.model_validate({
+            "firstName": "María",
+            "lastName": "O'Brien",
+            "userEmail": "maria@example.com",
+            "userPhone": "1234567890",
+            "password": "Pass123!",
+        })
+        self.assertEqual(form.first_name, "María")
+        self.assertEqual(form.last_name, "O'Brien")
+
+    def test_phone_with_formatting(self):
+        form = SignupForm.model_validate({
+            "firstName": "John",
+            "lastName": "Doe",
+            "userEmail": "john@example.com",
+            "userPhone": "+1 (555) 123-4567",
+            "password": "Pass123!",
+        })
+        self.assertEqual(form.user_phone, "+1 (555) 123-4567")
+
     def test_email_with_plus_tag(self):
         form = SignupForm.model_validate({
-            "first_name": "John",
-            "last_name": "Doe",
-            "user_email": "john+test@example.com",
-            "user_phone": "1234567890",
+            "firstName": "John",
+            "lastName": "Doe",
+            "userEmail": "john+test@example.com",
+            "userPhone": "1234567890",
             "password": "Pass123!",
         })
         self.assertEqual(form.user_email, "john+test@example.com")
 
     def test_email_with_subdomain(self):
         form = SignupForm.model_validate({
-            "first_name": "John",
-            "last_name": "Doe",
-            "user_email": "john@mail.example.co.uk",
-            "user_phone": "1234567890",
+            "firstName": "John",
+            "lastName": "Doe",
+            "userEmail": "john@mail.example.co.uk",
+            "userPhone": "1234567890",
             "password": "Pass123!",
         })
         self.assertEqual(form.user_email, "john@mail.example.co.uk")
+
+    def test_missing_all_fields_raises(self):
+        with self.assertRaises(ValidationError) as ctx:
+            SignupForm.model_validate({})
+        errors = ctx.exception.errors()
+        missing = [e["loc"][0] for e in errors]
+        self.assertIn("firstName", missing)
+        self.assertIn("lastName", missing)
+        self.assertIn("userEmail", missing)
+        self.assertIn("userPhone", missing)
+        self.assertIn("password", missing)
 
 
 class TestSignupController(unittest.TestCase):
@@ -213,10 +212,10 @@ class TestSignupController(unittest.TestCase):
         MockUserInfo.create.return_value = MagicMock()
 
         other_form = SignupForm.model_validate({
-            "first_name": "Alice",
-            "last_name": "Wonder",
-            "user_email": "alice@wonderland.com",
-            "user_phone": "9998887777",
+            "firstName": "Alice",
+            "lastName": "Wonder",
+            "userEmail": "alice@wonderland.com",
+            "userPhone": "9998887777",
             "password": "WonderPass!",
         })
         self.controller.create_user(other_form)
