@@ -1,15 +1,61 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Example user template template
-### Example user template
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+.wheels/
+pip-wheel-metadata/
 
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
-/data
-.vscode
+# Virtual environments
 venv/
-*.db
-*.pyc
+.venv/
+env/
+ENV/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+
+# Linting
+.flake8
+.ruff_cache/
+
+# IDE
+.idea/
+*.iml
+out/
+gen/
+.vscode/
 *.code-workspace
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Data and media
+/data/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db

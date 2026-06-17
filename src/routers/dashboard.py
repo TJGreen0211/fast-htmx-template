@@ -1,17 +1,23 @@
 """Dashboard routes."""
 from typing import Annotated, Union
 
-from fastapi import APIRouter, Header, Depends, HTTPException, Request
+from fastapi import Header, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel, EmailStr, Field
 
 from src.models.user import UserInfos, UserInfo, User
 from src.auth.jwt_handler import get_current_user
+from . import router, templates
 
 
-router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 PROTECTED = [Depends(get_current_user)]
+
+
+class AddUserForm(BaseModel):
+    username: EmailStr
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    password: str = Field(min_length=8, max_length=128)
 
 
 @router.get("/dashboard/users", dependencies=[Depends(get_current_user)])
@@ -61,22 +67,26 @@ async def get_user_list(request: Request, hx_request: Annotated[Union[str, None]
 
 
 @router.post("/add-user", response_class=HTMLResponse, dependencies=[Depends(get_current_user)])
-async def add_user(request: Request):
-    data = await request.form()
-    username = data.get("username")
-    first_name = data.get("first_name", "")
-    last_name = data.get("last_name", "")
-    password = data.get("password", "")
-
-    if not username or not password:
-        raise HTTPException(status_code=400, detail="Email and password are required")
+async def add_user(
+    request: Request,
+    username: EmailStr = Form(),
+    first_name: str = Form(min_length=1, max_length=100),
+    last_name: str = Form(min_length=1, max_length=100),
+    password: str = Form(min_length=8, max_length=128),
+):
+    form_data = AddUserForm(
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+        password=password,
+    )
 
     UserInfo.create(**{
-        "username": username,
-        "password": password,
+        "username": form_data.username,
+        "password": form_data.password,
         "metadata": {
-            "first_name": first_name,
-            "last_name": last_name,
+            "first_name": form_data.first_name,
+            "last_name": form_data.last_name,
             "phone": "",
         },
         "notification": {
@@ -88,7 +98,7 @@ async def add_user(request: Request):
     return templates.TemplateResponse(
         name="dashboard/users/add_user_success.html",
         request=request,
-        context={"username": username},
+        context={"username": form_data.username},
         headers={"HX-Trigger": "reloadUserList"}
     )
 

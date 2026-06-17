@@ -1,3 +1,4 @@
+import sys
 from invoke.tasks import task
 
 
@@ -14,11 +15,8 @@ def update_deps(c):
 @task(optional=['port'])
 def run(c, port: int=5000):
     """Start Uvicorn server with hot reloading on port 5000."""
-    result = c.run("python -m pip -V")
-    if "venv\\Lib\\site-packages\\pip" not in result.stdout:
-        cmd = "source venv/Scripts/activate && python -m uvicorn src.app:app --reload --host localhost --port 5000"
-        c.run(cmd)
-    cmd = f"python -m uvicorn src.app:app --reload --host localhost --port {port}"
+    venv_python = "venv\\Scripts\\python.exe" if sys.platform == "win32" else "venv/bin/python"
+    cmd = f"{venv_python} -m uvicorn src.app:app --reload --host localhost --port {port}"
     c.run(cmd)
 
 

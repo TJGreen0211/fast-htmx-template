@@ -2,13 +2,11 @@
 from datetime import timedelta
 from typing import Annotated, Union
 
-from fastapi import APIRouter, Header, Depends, HTTPException, status, Request
+from fastapi import Header, Depends, HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 
 from src.utils import config
 from src.controllers.login import validate_user
@@ -20,18 +18,10 @@ from src.auth.jwt_handler import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 from src.controllers.signup import SignupForm, SignupController
+from . import router, templates
 
-router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+
 PROTECTED = [Depends(get_current_user)]
-
-
-class UserForm(BaseModel):
-    name: str
-    email: str
-    phone: str
-    eventType: str
-    message: str
 
 
 @router.get("/user/navbar")
@@ -47,7 +37,6 @@ async def navbar(request: Request, current_user: Union[LoginUser, None] = Depend
 async def login_page(request: Request, hx_request: Annotated[Union[str, None], Header()] = None):
     if hx_request:
         return templates.TemplateResponse(
-            headers={'HX-Trigger': 'loadFolderContents'},
             request=request,
             name="user/user_login.html",
             context={}
@@ -64,7 +53,6 @@ async def login_page(request: Request, hx_request: Annotated[Union[str, None], H
 async def signup_page(request: Request, hx_request: Annotated[Union[str, None], Header()] = None):
     if hx_request:
         return templates.TemplateResponse(
-            headers={'HX-Trigger': 'loadFolderContents'},
             request=request,
             name="user/user_signup.html",
             context={}
